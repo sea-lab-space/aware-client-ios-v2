@@ -360,13 +360,13 @@
                 NSNumber *lastTs = [lastDict objectForKey:timestampKey];
                 NSDictionary *firstDict = [results firstObject];
                 NSNumber *firstTs = [firstDict objectForKey:timestampKey];
-                NSLog(@"[Entity: %@] time debug - First Fetch - Count: %lu, First TS: %@, Last TS: %@",
+                if (self.isDebug) NSLog(@"[Entity: %@] time debug - First Fetch - Count: %lu, First TS: %@, Last TS: %@",
                       self->entityName,
                       (unsigned long)results.count,
                       [firstDict objectForKey:timestampKey],
                       [lastDict objectForKey:timestampKey]);
 
-                NSLog(@"[Entity: %@] time debug - lastTs in limit: %@", self->entityName, lastTs);
+                if (self.isDebug) NSLog(@"[Entity: %@] time debug - lastTs in limit: %@", self->entityName, lastTs);
                 
                 
                 //second fetch based on the tempLastUnixTimstamp
@@ -376,7 +376,7 @@
                 [finalFetchRequest setResultType:NSDictionaryResultType];
                 
                 results = [private executeFetchRequest:finalFetchRequest error:nil];
-                NSLog(@"[%@] SQLite Final Count ---> %lu", self.sensorName, (unsigned long)results.count);
+                if (self.isDebug) NSLog(@"[%@] SQLite Final Count ---> %lu", self.sensorName, (unsigned long)results.count);
                 
                 
                 
@@ -386,18 +386,18 @@
                 if (self->tempLastUnixTimestamp == nil) {
                     self->tempLastUnixTimestamp = @0;
                 }
-                NSLog(@"[Entity: %@] time debug - tempLastUnixTimestamp: %@", self->entityName, self->tempLastUnixTimestamp);
+                if (self.isDebug) NSLog(@"[Entity: %@] time debug - tempLastUnixTimestamp: %@", self->entityName, self->tempLastUnixTimestamp);
 
                 NSManagedObject *firstObject = [results firstObject];
                 NSManagedObject *lastObject = [results lastObject];
 
-                NSLog(@"[Entity: %@] time debug - count = %lu, first timestamp = %@, last timestamp = %@",
+                if (self.isDebug) NSLog(@"[Entity: %@] time debug - count = %lu, first timestamp = %@, last timestamp = %@",
                       self->entityName,
                       (unsigned long)results.count,
                       [firstObject valueForKey:@"timestamp"],
                       [lastObject valueForKey:@"timestamp"]);
 
-                NSLog(@"[Entity: %@] time debug - Fetching data, count before saving = %lu, currentRepetitionCount = %ld, requiredRepetitionCount = %ld",
+                if (self.isDebug) NSLog(@"[Entity: %@] time debug - Fetching data, count before saving = %lu, currentRepetitionCount = %ld, requiredRepetitionCount = %ld",
                       self->entityName,
                       (unsigned long)results.count,
                       (long)self->currentRepetitionCount,
@@ -441,13 +441,13 @@
                                         if((BOOL)isSuccess.intValue){
                                             // set a repetation count
                                             self->currentRepetitionCount++;
-                                            NSLog(@"[Entity: %@] time debug - After Fetching, count after saving = %lu, currentRepetitionCount = %ld, requiredRepetitionCount = %ld",
+                                            if (self.isDebug) NSLog(@"[Entity: %@] time debug - After Fetching, count after saving = %lu, currentRepetitionCount = %ld, requiredRepetitionCount = %ld",
                                                   self->entityName,
                                                   (unsigned long)results.count,
                                                   (long)self->currentRepetitionCount,
                                                   (long)self->requiredRepetitionCount);
 
-                                            NSLog(@"[Entity: %@] time debug - save after, previousUploadingProcessFinishUnixTime = %@, tempLastUnixTimestamp = %@",
+                                            if (self.isDebug) NSLog(@"[Entity: %@] time debug - save after, previousUploadingProcessFinishUnixTime = %@, tempLastUnixTimestamp = %@",
                                                   self->entityName,
                                                   self->previousUploadingProcessFinishUnixTime,
                                                   self->tempLastUnixTimestamp);
