@@ -281,6 +281,8 @@
             self->currentRepetitionCount = 0;
             self->requiredRepetitionCount = (int)count/(int)[self.awareStudy getMaximumNumberOfRecordsForDBSync];
 
+            NSLog(@"[Entity: %@] count: %d, maxRecords: %d", self->entityName, (int)count, (int)[self.awareStudy getMaximumNumberOfRecordsForDBSync]);
+            self->currentRepetitionCount = 0;
             if (self.isDebug) NSLog(@"[%@] %d times of sync tasks are required", self.sensorName, self->requiredRepetitionCount);
             
             dispatch_async(dispatch_get_main_queue(), ^{
@@ -313,6 +315,7 @@
     }
     
     previousUploadingProcessFinishUnixTime = [self getTimeMark];
+    NSLog(@"[Entity: %@] time debug - previousUploadingProcessFinishUnixTime: %@", self->entityName, self->previousUploadingProcessFinishUnixTime);
 
     if(entityName == nil){
         NSLog(@"Entity Name is `nil`. Please check the initialozation of this class.");
@@ -327,18 +330,15 @@
             [fetchRequest setEntity:[NSEntityDescription entityForName:self->entityName inManagedObjectContext:self.mainQueueManagedObjectContext]];
             [fetchRequest setIncludesSubentities:NO];
             [fetchRequest setResultType:NSDictionaryResultType];
-            if([self->entityName isEqualToString:@"EntityESMAnswer"] ){
-                [fetchRequest setPredicate:[NSPredicate predicateWithFormat:@"double_esm_user_answer_timestamp > %@",
-                                            self->previousUploadingProcessFinishUnixTime]];
-            }else{
-                [fetchRequest setPredicate:[NSPredicate predicateWithFormat:@"timestamp > %@", self->previousUploadingProcessFinishUnixTime]];
-            }
+            // query where statement
+            NSString *timestampKey = [self->entityName isEqualToString:@"EntityESMAnswer"] ? @"double_esm_user_answer_timestamp" : @"timestamp";
+            [fetchRequest setPredicate:[NSPredicate predicateWithFormat:@"%K > %@", timestampKey, self->previousUploadingProcessFinishUnixTime]];
+            
             
             //Set sort option
-            NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"timestamp" ascending:YES];
-            NSArray *sortDescriptors = [[NSArray alloc] initWithObjects:sortDescriptor, nil];
-            [fetchRequest setSortDescriptors:sortDescriptors];
-            
+            NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:timestampKey ascending:YES];
+            [fetchRequest setSortDescriptors:@[sortDescriptor]];
+
             //Get NSManagedObject from managedObjectContext by using fetch setting
             
             NSDate * s = [NSDate new];
@@ -356,15 +356,53 @@
                     return;
                 }
                 
-                // Save current timestamp as a maker
                 NSDictionary * lastDict = [results lastObject];//[results objectAtIndex:results.count-1];
-                self->tempLastUnixTimestamp = [lastDict objectForKey:@"timestamp"];
-                if([self->entityName isEqualToString:@"EntityESMAnswer"] ){
-                    self->tempLastUnixTimestamp = [lastDict objectForKey:@"double_esm_user_answer_timestamp"];
-                }
+                NSNumber *lastTs = [lastDict objectForKey:timestampKey];
+                NSDictionary *firstDict = [results firstObject];
+                NSNumber *firstTs = [firstDict objectForKey:timestampKey];
+                NSLog(@"[Entity: %@] time debug - First Fetch - Count: %lu, First TS: %@, Last TS: %@",
+                      self->entityName,
+                      (unsigned long)results.count,
+                      [firstDict objectForKey:timestampKey],
+                      [lastDict objectForKey:timestampKey]);
+
+                NSLog(@"[Entity: %@] time debug - lastTs in limit: %@", self->entityName, lastTs);
+                
+                
+                //second fetch based on the tempLastUnixTimstamp
+                NSFetchRequest *finalFetchRequest = [[NSFetchRequest alloc] initWithEntityName:self->entityName];
+                NSPredicate *predicate = [NSPredicate predicateWithFormat:@"%K >= %@ AND %K <= %@", timestampKey, firstTs, timestampKey, lastTs];
+                [finalFetchRequest setSortDescriptors:@[sortDescriptor]];
+                [finalFetchRequest setResultType:NSDictionaryResultType];
+                
+                results = [private executeFetchRequest:finalFetchRequest error:nil];
+                NSLog(@"[%@] SQLite Final Count ---> %lu", self.sensorName, (unsigned long)results.count);
+                
+                
+                
+                // Save current timestamp as a maker
+                lastDict = [results lastObject];
+                self->tempLastUnixTimestamp = [lastDict objectForKey:timestampKey];
                 if (self->tempLastUnixTimestamp == nil) {
                     self->tempLastUnixTimestamp = @0;
                 }
+                NSLog(@"[Entity: %@] time debug - tempLastUnixTimestamp: %@", self->entityName, self->tempLastUnixTimestamp);
+
+                NSManagedObject *firstObject = [results firstObject];
+                NSManagedObject *lastObject = [results lastObject];
+
+                NSLog(@"[Entity: %@] time debug - count = %lu, first timestamp = %@, last timestamp = %@",
+                      self->entityName,
+                      (unsigned long)results.count,
+                      [firstObject valueForKey:@"timestamp"],
+                      [lastObject valueForKey:@"timestamp"]);
+
+                NSLog(@"[Entity: %@] time debug - Fetching data, count before saving = %lu, currentRepetitionCount = %ld, requiredRepetitionCount = %ld",
+                      self->entityName,
+                      (unsigned long)results.count,
+                      (long)self->currentRepetitionCount,
+                      (long)self->requiredRepetitionCount);
+
                 
                 // Convert array to json data
                 NSError * error = nil;
@@ -403,6 +441,17 @@
                                         if((BOOL)isSuccess.intValue){
                                             // set a repetation count
                                             self->currentRepetitionCount++;
+                                            NSLog(@"[Entity: %@] time debug - After Fetching, count after saving = %lu, currentRepetitionCount = %ld, requiredRepetitionCount = %ld",
+                                                  self->entityName,
+                                                  (unsigned long)results.count,
+                                                  (long)self->currentRepetitionCount,
+                                                  (long)self->requiredRepetitionCount);
+
+                                            NSLog(@"[Entity: %@] time debug - save after, previousUploadingProcessFinishUnixTime = %@, tempLastUnixTimestamp = %@",
+                                                  self->entityName,
+                                                  self->previousUploadingProcessFinishUnixTime,
+                                                  self->tempLastUnixTimestamp);
+
                                             [self setTimeMarkWithTimestamp:self->tempLastUnixTimestamp];
                                             if (self->requiredRepetitionCount<=self->currentRepetitionCount) {
                                                 ///////////////// Done ////////////
@@ -525,6 +574,7 @@
                 [request setPredicate:[NSPredicate predicateWithFormat:@"(double_esm_user_answer_timestamp <= %@)", limitTimestamp]];
             }else{
                 [request setPredicate:[NSPredicate predicateWithFormat:@"(timestamp <= %@)", limitTimestamp]];
+
             }
             
             NSBatchDeleteRequest *delete = [[NSBatchDeleteRequest alloc] initWithFetchRequest:request];
@@ -559,6 +609,8 @@
     [self setTimeMarkWithTimestamp:@0];
 }
 
+
+
 - (void) setTimeMark:(NSDate *) timestamp {
     NSNumber * unixtimestamp = @0;
     if (timestamp != nil) {
@@ -577,6 +629,8 @@
     [userDefaults setObject:timestamp forKey:timeMarkerIdentifier];
     [userDefaults synchronize];
 }
+
+
 
 
 - (NSNumber *) getTimeMark {

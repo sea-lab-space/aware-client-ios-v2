@@ -92,6 +92,36 @@
     session.configuration.timeoutIntervalForResource    = _timeoutIntervalForResource;
     session.configuration.allowsCellularAccess = YES;
     
+    // parse JSON data
+    NSError *jsonError;
+    NSArray *jsonArray = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&jsonError];
+
+    NSString *firstTimestamp = @"N/A";
+    NSString *lastTimestamp = @"N/A";
+    NSUInteger dataListLength = 0;  // length of data
+
+    if (!jsonError && [jsonArray isKindOfClass:[NSArray class]]) {
+        dataListLength = jsonArray.count; // get data count
+        
+        if (dataListLength > 0) {
+            NSDictionary *firstObject = jsonArray.firstObject;
+            NSDictionary *lastObject = jsonArray.lastObject;
+            
+            if (firstObject[@"timestamp"]) {
+                firstTimestamp = [NSString stringWithFormat:@"%@", firstObject[@"timestamp"]];
+            }
+            if (lastObject[@"timestamp"]) {
+                lastTimestamp = [NSString stringWithFormat:@"%@", lastObject[@"timestamp"]];
+            }
+        }
+    } else {
+        NSLog(@"JSON parsing error: %@", jsonError.localizedDescription);
+    }
+
+    NSLog(@"[HTTP Request] Sensor: %@ | Data Length (bytes): %tu | Data List Length: %lu | First Timestamp: %@ | Last Timestamp: %@",
+          sensorName, [mutablePostData length], (unsigned long)dataListLength, firstTimestamp, lastTimestamp);
+
+    
     dataTask = [session dataTaskWithRequest:request];
     [dataTask resume];
 }
