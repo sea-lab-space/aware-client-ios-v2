@@ -10,6 +10,7 @@
 #import "AWAREHealthKitWorkout.h"
 #import "AWAREHealthKitCategory.h"
 #import "AWAREHealthKitQuantity.h"
+#import "AWAREHealthKitCharacteristic.h"
 
 
 extern NSString * _Nonnull const AWARE_PREFERENCES_STATUS_HEALTHKIT;
@@ -28,6 +29,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (readonly) AWAREHealthKitQuantity * awareHKQuantity;
 @property (readonly) AWAREHealthKitQuantity * awareHKHeartRate;
 @property (readonly) AWAREHealthKitCategory * awareHKSleep;
+@property (readonly) AWAREHealthKitCharacteristic * awareHKCharacteristic; 
 
 - (void) requestAuthorizationToAccessHealthKit;
 - (void) requestAuthorizationWithDataTypes:(NSSet *) dataTypes completion:(void (^)(BOOL success, NSError * _Nullable error))completion;

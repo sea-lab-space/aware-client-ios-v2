@@ -17,6 +17,7 @@
 #import "AWAREHealthKitWorkout.h"
 #import "AWAREHealthKitCategory.h"
 #import "AWAREHealthKitQuantity.h"
+#import "AWAREHealthKitCharacteristic.h"
 
 #import "Screen.h"
 
@@ -26,6 +27,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
 
 @implementation AWAREHealthKit{
     NSTimer       * timer;
+    NSTimer       * characteristicCheckTimer;
     HKHealthStore * healthStore;
     Screen * screen;
     bool isAuthorized;
@@ -39,6 +41,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
         _awareHKWorkout   = [[AWAREHealthKitWorkout  alloc] initWithAwareStudy:study dbType:AwareDBTypeSQLite];
         _awareHKCategory  = [[AWAREHealthKitCategory alloc] initWithAwareStudy:study dbType:AwareDBTypeSQLite];
         _awareHKQuantity  = [[AWAREHealthKitQuantity alloc] initWithAwareStudy:study dbType:AwareDBTypeSQLite];
+        _awareHKCharacteristic = [[AWAREHealthKitCharacteristic alloc] initWithAwareStudy:study dbType:dbType characteristicTypes:[self characteristicDataTypesToRead]];
         _awareHKHeartRate = [[AWAREHealthKitQuantity alloc] initWithAwareStudy:study
                                                                         dbType:dbType
                                                                     sensorName:[NSString stringWithFormat:@"%@_heartrate", SENSOR_HEALTH_KIT]
@@ -59,12 +62,15 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
 
 
 - (void) requestAuthorizationToAccessHealthKit {
+    NSLog(@"%@", @"mark1");
     [self requestAuthorizationWithAllDataTypes:^(BOOL success, NSError * _Nullable error) {
         NSLog(@"requestAuthorizationWithAllDataTypes -> %d: %@", success, error);
+        NSLog(@"%@", @"mark2");
     }];
 }
 
 -(void)requestAuthorizationWithDataTypes:(NSSet *)dataTypes completion:(void (^)(BOOL, NSError * _Nullable))completion {
+    NSLog(@"%@", @"mark3");
     if(NSClassFromString(@"HKHealthStore") && [HKHealthStore isHealthDataAvailable])
     {
         // Request access
@@ -72,18 +78,23 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
                                             readTypes:dataTypes
                                            completion:^(BOOL success, NSError *error) {
             self->isAuthorized = YES;
+            NSLog(@"%@", @"mark4");
+            [self->_awareHKCharacteristic fetchAndSaveCharacteristicData];
             completion(success, error);
                                            }];
     }
 }
 
 -(void)requestAuthorizationWithAllDataTypes:(void (^)(BOOL, NSError * _Nullable))completion{
-    [self requestAuthorizationWithDataTypes:[self dataTypesToRead] completion:completion];
+    [self requestAuthorizationWithDataTypes:[self allDataTypesToRead] completion:completion];
+    NSLog(@"%@", @"mark5");
 }
 
 - (void) requestAuthorizationToAccessHealthKi {
-    [self requestAuthorizationWithDataTypes:[self dataTypesToRead] completion:^(BOOL success, NSError *error) {
+    NSLog(@"%@", @"mark6");
+    [self requestAuthorizationWithDataTypes:[self allDataTypesToRead] completion:^(BOOL success, NSError *error) {
         self->isAuthorized = YES;
+        NSLog(@"%@", @"mark7");
     }];
 }
 
@@ -94,6 +105,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     [_awareHKQuantity  createTable];
     [_awareHKHeartRate createTable];
     [_awareHKSleep     createTable];
+    [_awareHKCharacteristic createTable];
 }
 
 - (void)setParameters:(NSArray *)parameters{
@@ -152,13 +164,16 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
         [_awareHKCategory.storage saveBufferDataInMainThread:YES];
     }
     if (_awareHKQuantity.storage != nil) {
-        [_awareHKCategory.storage saveBufferDataInMainThread:YES];
+        [_awareHKQuantity.storage saveBufferDataInMainThread:YES];
     }
     if (_awareHKHeartRate.storage != nil){
         [_awareHKHeartRate.storage saveBufferDataInMainThread:YES];
     }
     if(_awareHKSleep.storage != nil) {
         [_awareHKSleep.storage saveBufferDataInMainThread:YES];
+    }
+    if (_awareHKCharacteristic.storage != nil) { // ✅ 现在也需要处理 characteristic 存储
+        [_awareHKCharacteristic.storage saveBufferDataInMainThread:YES];
     }
       
     [self setSensingState:NO];
@@ -172,6 +187,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     [_awareHKHeartRate.storage setSyncProcessCallback:self.storage.syncProcessCallback];
     [_awareHKHeartRate startSyncDB];
     [_awareHKSleep     startSyncDB];
+    [_awareHKCharacteristic startSyncDB];
     [super startSyncDB];
 }
 
@@ -182,6 +198,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     
     [_awareHKHeartRate stopSyncDB];
     [_awareHKSleep     stopSyncDB];
+    [_awareHKCharacteristic stopSyncDB];
     [super stopSyncDB];
 }
 
