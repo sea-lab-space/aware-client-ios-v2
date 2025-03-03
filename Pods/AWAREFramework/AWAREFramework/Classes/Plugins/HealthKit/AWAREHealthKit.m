@@ -18,6 +18,7 @@
 #import "AWAREHealthKitCategory.h"
 #import "AWAREHealthKitQuantity.h"
 #import "AWAREHealthKitCharacteristic.h"
+#import "AWAREHealthKitECG.h"
 
 #import "Screen.h"
 
@@ -42,6 +43,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
         _awareHKCategory  = [[AWAREHealthKitCategory alloc] initWithAwareStudy:study dbType:AwareDBTypeSQLite];
         _awareHKQuantity  = [[AWAREHealthKitQuantity alloc] initWithAwareStudy:study dbType:AwareDBTypeSQLite];
         _awareHKCharacteristic = [[AWAREHealthKitCharacteristic alloc] initWithAwareStudy:study dbType:dbType characteristicTypes:[self characteristicDataTypesToRead]];
+        _awareHKECG = [[AWAREHealthKitECG alloc] initWithAwareStudy:study dbType:dbType];
         _awareHKHeartRate = [[AWAREHealthKitQuantity alloc] initWithAwareStudy:study
                                                                         dbType:dbType
                                                                     sensorName:[NSString stringWithFormat:@"%@_heartrate", SENSOR_HEALTH_KIT]
@@ -106,6 +108,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     [_awareHKHeartRate createTable];
     [_awareHKSleep     createTable];
     [_awareHKCharacteristic createTable];
+    [_awareHKECG createTable];
 }
 
 - (void)setParameters:(NSArray *)parameters{
@@ -172,8 +175,11 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     if(_awareHKSleep.storage != nil) {
         [_awareHKSleep.storage saveBufferDataInMainThread:YES];
     }
-    if (_awareHKCharacteristic.storage != nil) { // ✅ 现在也需要处理 characteristic 存储
+    if (_awareHKCharacteristic.storage != nil) {
         [_awareHKCharacteristic.storage saveBufferDataInMainThread:YES];
+    }
+    if (_awareHKECG.storage != nil) {
+        [_awareHKECG.storage saveBufferDataInMainThread:YES];
     }
       
     [self setSensingState:NO];
@@ -188,6 +194,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     [_awareHKHeartRate startSyncDB];
     [_awareHKSleep     startSyncDB];
     [_awareHKCharacteristic startSyncDB];
+    [_awareHKECG startSyncDB];
     [super startSyncDB];
 }
 
@@ -199,6 +206,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     [_awareHKHeartRate stopSyncDB];
     [_awareHKSleep     stopSyncDB];
     [_awareHKCharacteristic stopSyncDB];
+    [_awareHKECG stopSyncDB];
     [super stopSyncDB];
 }
 
@@ -361,6 +369,21 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
                 // }
                 // https://developer.apple.com/reference/healthkit
                 
+                /// **✅ 处理 ECG 类型**
+                NSSet *ecgTypes = [self getDataECGTypes]; // 确保 ECG 类型被检测
+                if ([ecgTypes containsObject:query.objectType]) {
+                    if (results.count > 0) {
+                        if (@available(iOS 14.0, *)) {
+                            [self->_awareHKECG saveECGData:(NSArray<HKElectrocardiogram *> *)results];
+                        }
+
+                        if (@available(iOS 14.0, *)) {
+                            HKElectrocardiogram * lastSample = (HKElectrocardiogram *)results.lastObject;
+                            [self setLastRecordTime:lastSample.endDate withHKDataType:query.objectType.identifier];
+                        }
+                    }
+                }
+                
             }else{
                 NSLog(@"[%@] Error: %@", [self getSensorName], error.debugDescription);
             }
@@ -378,10 +401,12 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
 
 // Returns the types of data that Fit wishes to read from HealthKit.
 - (NSSet *)allDataTypesToRead {
-    NSSet * characteristicTypesSet = [self characteristicDataTypesToRead];
-    NSSet * otherTypesSet          = [self dataTypesToRead];
-    
-    return [otherTypesSet setByAddingObjectsFromSet: characteristicTypesSet];
+    NSSet *characteristicTypesSet = [self characteristicDataTypesToRead];
+    NSSet *otherTypesSet          = [self dataTypesToRead];
+    NSSet *ecgTypesSet            = [self getDataECGTypes]; // ✅ 加入 ECG 类型
+
+    return [[[otherTypesSet setByAddingObjectsFromSet:characteristicTypesSet]
+                      setByAddingObjectsFromSet:ecgTypesSet] copy]; // ✅ 让 ECG 也包含在所有数据类型中
 }
 
 // Returns the types of data that Fit wishes to read from HealthKit.
@@ -732,12 +757,23 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     return dataTypesSet;
 }
 
+
 - (NSSet *) getDataWorkoutTypes{
     NSMutableSet* dataTypesSet = [[NSMutableSet alloc] init];
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // HKWorkoutType
     HKWorkoutType *workoutType = [HKWorkoutType workoutType];
     [dataTypesSet addObject:workoutType];
+
+    return dataTypesSet;
+}
+
+- (NSSet *) getDataECGTypes {
+    NSMutableSet* dataTypesSet = [[NSMutableSet alloc] init];
+
+    if (@available(iOS 14.0, *)) {
+        [dataTypesSet addObject:[HKObjectType electrocardiogramType]]; // ✅ ECG 类型
+    }
 
     return dataTypesSet;
 }
@@ -751,6 +787,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     NSSet * dataCatogoryTypes    = [self getDataCategoryTypes];
     // NSSet * dataCorrelationTypes = [self getDataCorrelationTypes];
     NSSet * dataWorkoutTypes     = [self getDataWorkoutTypes];
+    NSSet * dataEcgTypes = [self getDataECGTypes];
 
     for (HKQuantityType *quantityType in dataQuantityTypes) {
         [dataTypesSet addObject:quantityType];
@@ -765,6 +802,15 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
 #endif
     for(HKWorkoutType *workoutType in dataWorkoutTypes){
         [dataTypesSet addObject:workoutType];
+    }
+    
+
+    if (@available(iOS 14.0, *)) {
+        for (HKElectrocardiogramType *ecgType in dataEcgTypes){
+            [dataTypesSet addObject:ecgType];
+        }
+    } else {
+        // Fallback on earlier versions
     }
     
     return dataTypesSet;

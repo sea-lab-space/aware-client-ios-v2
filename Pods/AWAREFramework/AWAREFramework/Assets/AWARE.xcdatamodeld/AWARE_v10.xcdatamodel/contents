@@ -380,6 +380,20 @@
         <attribute name="unit" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="value" optional="YES" attributeType="String" syncable="YES"/>
     </entity>
+    <entity name="EntityHealthKitECG" representedClassName="EntityHealthKitECG" syncable="YES">
+        <attribute name="average_heart_rate" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="classification" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="device" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="device_id" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="label" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="metadata" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="sampling_frequency" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="source" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="timestamp_end" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="timestamp_start" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="unit" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="voltages" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
     <entity name="EntityHealthKitQuantity" representedClassName="EntityHealthKitQuantity" syncable="YES">
         <attribute name="device" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="device_id" optional="YES" attributeType="String" syncable="YES"/>
