@@ -380,6 +380,7 @@
         <attribute name="unit" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="value" optional="YES" attributeType="String" syncable="YES"/>
     </entity>
+<<<<<<< HEAD
     <entity name="EntityHealthKitECG" representedClassName="EntityHealthKitECG" syncable="YES">
         <attribute name="average_heart_rate" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES" syncable="YES"/>
         <attribute name="classification" optional="YES" attributeType="String" syncable="YES"/>
@@ -393,6 +394,15 @@
         <attribute name="timestamp_start" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES" syncable="YES"/>
         <attribute name="unit" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="voltages" optional="YES" attributeType="String" syncable="YES"/>
+=======
+    <entity name="EntityHealthKitClinical" representedClassName="EntityHealthKitClinical" syncable="YES">
+        <attribute name="device" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="device_id" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="fhirResource" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="source" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="timestamp" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="type" optional="YES" attributeType="String" syncable="YES"/>
+>>>>>>> add-clinical-data
     </entity>
     <entity name="EntityHealthKitQuantity" representedClassName="EntityHealthKitQuantity" syncable="YES">
         <attribute name="device" optional="YES" attributeType="String" syncable="YES"/>

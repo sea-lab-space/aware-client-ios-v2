@@ -468,12 +468,21 @@
 		CA781DE42D6ECF6A00CC0992 /* EntityHealthKitCharacteristic+CoreDataProperties.h in Headers */ = {isa = PBXBuildFile; fileRef = CA781DDF2D6ECF6A00CC0992 /* EntityHealthKitCharacteristic+CoreDataProperties.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CA781DE62D6ED09400CC0992 /* AWAREHealthKitCharacteristic.h in Headers */ = {isa = PBXBuildFile; fileRef = CA781DE52D6ED09400CC0992 /* AWAREHealthKitCharacteristic.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CA781DE82D6ED0B900CC0992 /* AWAREHealthKitCharacteristic.m in Sources */ = {isa = PBXBuildFile; fileRef = CA781DE72D6ED0B900CC0992 /* AWAREHealthKitCharacteristic.m */; };
+<<<<<<< HEAD
 		CA781DED2D73A33600CC0992 /* EntityHealthKitECG+CoreDataProperties.m in Sources */ = {isa = PBXBuildFile; fileRef = CA781DEC2D73A33600CC0992 /* EntityHealthKitECG+CoreDataProperties.m */; };
 		CA781DEE2D73A33600CC0992 /* EntityHealthKitECG+CoreDataClass.m in Sources */ = {isa = PBXBuildFile; fileRef = CA781DEA2D73A33600CC0992 /* EntityHealthKitECG+CoreDataClass.m */; };
 		CA781DEF2D73A33600CC0992 /* EntityHealthKitECG+CoreDataClass.h in Headers */ = {isa = PBXBuildFile; fileRef = CA781DE92D73A33600CC0992 /* EntityHealthKitECG+CoreDataClass.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CA781DF02D73A33600CC0992 /* EntityHealthKitECG+CoreDataProperties.h in Headers */ = {isa = PBXBuildFile; fileRef = CA781DEB2D73A33600CC0992 /* EntityHealthKitECG+CoreDataProperties.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CA781DF22D73A3B600CC0992 /* AWAREHealthKitECG.h in Headers */ = {isa = PBXBuildFile; fileRef = CA781DF12D73A3B600CC0992 /* AWAREHealthKitECG.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CA781DF42D73A45100CC0992 /* AWAREHealthKitECG.m in Sources */ = {isa = PBXBuildFile; fileRef = CA781DF32D73A45100CC0992 /* AWAREHealthKitECG.m */; };
+=======
+		CA781DF92D765B5800CC0992 /* EntityHealthKitClinical+CoreDataProperties.h in Headers */ = {isa = PBXBuildFile; fileRef = CA781DF72D765B5800CC0992 /* EntityHealthKitClinical+CoreDataProperties.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		CA781DFA2D765B5800CC0992 /* EntityHealthKitClinical+CoreDataClass.h in Headers */ = {isa = PBXBuildFile; fileRef = CA781DF52D765B5800CC0992 /* EntityHealthKitClinical+CoreDataClass.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		CA781DFB2D765B5800CC0992 /* EntityHealthKitClinical+CoreDataProperties.m in Sources */ = {isa = PBXBuildFile; fileRef = CA781DF82D765B5800CC0992 /* EntityHealthKitClinical+CoreDataProperties.m */; };
+		CA781DFC2D765B5800CC0992 /* EntityHealthKitClinical+CoreDataClass.m in Sources */ = {isa = PBXBuildFile; fileRef = CA781DF62D765B5800CC0992 /* EntityHealthKitClinical+CoreDataClass.m */; };
+		CA781DFE2D765BE600CC0992 /* AWAREHealthKitClinical.h in Headers */ = {isa = PBXBuildFile; fileRef = CA781DFD2D765BE600CC0992 /* AWAREHealthKitClinical.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		CA781E002D765C1100CC0992 /* AWAREHealthKitClinical.m in Sources */ = {isa = PBXBuildFile; fileRef = CA781DFF2D765C1100CC0992 /* AWAREHealthKitClinical.m */; };
+>>>>>>> add-clinical-data
 		CAF4982F35DAFE10A9B180A3D02AEE5F /* AWARELinearAccelerometerOM+CoreDataProperties.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F213BDA61718FFF41708AE7B4B34A18 /* AWARELinearAccelerometerOM+CoreDataProperties.m */; };
 		CB3007C3A15B0B30B6B0E06BDAB9A0AF /* FitbitData.m in Sources */ = {isa = PBXBuildFile; fileRef = D41E7122C2E3F408FDBACA33423F3D30 /* FitbitData.m */; };
 		CB980B0428498A8CE5744A97F9DD63AE /* EZAudioPlotGL.m in Sources */ = {isa = PBXBuildFile; fileRef = 3E70B1F074BE51BFC55DFDAEFAD921CC /* EZAudioPlotGL.m */; };
@@ -1122,12 +1131,21 @@
 		CA781DE02D6ECF6A00CC0992 /* EntityHealthKitCharacteristic+CoreDataProperties.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "EntityHealthKitCharacteristic+CoreDataProperties.m"; path = "AWAREFramework/Classes/Plugins/HealthKit/EntityHealthKitCharacteristic+CoreDataProperties.m"; sourceTree = "<group>"; };
 		CA781DE52D6ED09400CC0992 /* AWAREHealthKitCharacteristic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AWAREHealthKitCharacteristic.h; path = AWAREFramework/Classes/Plugins/HealthKit/AWAREHealthKitCharacteristic.h; sourceTree = "<group>"; };
 		CA781DE72D6ED0B900CC0992 /* AWAREHealthKitCharacteristic.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = AWAREHealthKitCharacteristic.m; path = AWAREFramework/Classes/Plugins/HealthKit/AWAREHealthKitCharacteristic.m; sourceTree = "<group>"; };
+<<<<<<< HEAD
 		CA781DE92D73A33600CC0992 /* EntityHealthKitECG+CoreDataClass.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "EntityHealthKitECG+CoreDataClass.h"; path = "AWAREFramework/Classes/Plugins/HealthKit/EntityHealthKitECG+CoreDataClass.h"; sourceTree = "<group>"; };
 		CA781DEA2D73A33600CC0992 /* EntityHealthKitECG+CoreDataClass.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "EntityHealthKitECG+CoreDataClass.m"; path = "AWAREFramework/Classes/Plugins/HealthKit/EntityHealthKitECG+CoreDataClass.m"; sourceTree = "<group>"; };
 		CA781DEB2D73A33600CC0992 /* EntityHealthKitECG+CoreDataProperties.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "EntityHealthKitECG+CoreDataProperties.h"; path = "AWAREFramework/Classes/Plugins/HealthKit/EntityHealthKitECG+CoreDataProperties.h"; sourceTree = "<group>"; };
 		CA781DEC2D73A33600CC0992 /* EntityHealthKitECG+CoreDataProperties.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "EntityHealthKitECG+CoreDataProperties.m"; path = "AWAREFramework/Classes/Plugins/HealthKit/EntityHealthKitECG+CoreDataProperties.m"; sourceTree = "<group>"; };
 		CA781DF12D73A3B600CC0992 /* AWAREHealthKitECG.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AWAREHealthKitECG.h; path = AWAREFramework/Classes/Plugins/HealthKit/AWAREHealthKitECG.h; sourceTree = "<group>"; };
 		CA781DF32D73A45100CC0992 /* AWAREHealthKitECG.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = AWAREHealthKitECG.m; path = AWAREFramework/Classes/Plugins/HealthKit/AWAREHealthKitECG.m; sourceTree = "<group>"; };
+=======
+		CA781DF52D765B5800CC0992 /* EntityHealthKitClinical+CoreDataClass.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "EntityHealthKitClinical+CoreDataClass.h"; path = "AWAREFramework/Classes/Plugins/HealthKit/EntityHealthKitClinical+CoreDataClass.h"; sourceTree = "<group>"; };
+		CA781DF62D765B5800CC0992 /* EntityHealthKitClinical+CoreDataClass.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "EntityHealthKitClinical+CoreDataClass.m"; path = "AWAREFramework/Classes/Plugins/HealthKit/EntityHealthKitClinical+CoreDataClass.m"; sourceTree = "<group>"; };
+		CA781DF72D765B5800CC0992 /* EntityHealthKitClinical+CoreDataProperties.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "EntityHealthKitClinical+CoreDataProperties.h"; path = "AWAREFramework/Classes/Plugins/HealthKit/EntityHealthKitClinical+CoreDataProperties.h"; sourceTree = "<group>"; };
+		CA781DF82D765B5800CC0992 /* EntityHealthKitClinical+CoreDataProperties.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "EntityHealthKitClinical+CoreDataProperties.m"; path = "AWAREFramework/Classes/Plugins/HealthKit/EntityHealthKitClinical+CoreDataProperties.m"; sourceTree = "<group>"; };
+		CA781DFD2D765BE600CC0992 /* AWAREHealthKitClinical.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AWAREHealthKitClinical.h; path = AWAREFramework/Classes/Plugins/HealthKit/AWAREHealthKitClinical.h; sourceTree = "<group>"; };
+		CA781DFF2D765C1100CC0992 /* AWAREHealthKitClinical.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = AWAREHealthKitClinical.m; path = AWAREFramework/Classes/Plugins/HealthKit/AWAREHealthKitClinical.m; sourceTree = "<group>"; };
+>>>>>>> add-clinical-data
 		CB1682A69EA184F1A2FB28B62E70B621 /* EntityMemory+CoreDataProperties.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = "EntityMemory+CoreDataProperties.m"; path = "AWAREFramework/Classes/Sensors/Memory/ObjectModels/EntityMemory+CoreDataProperties.m"; sourceTree = "<group>"; };
 		CB27DA8EA089B52A72BAF3C10BE73F3A /* 5_1.jpg */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.jpeg; name = 5_1.jpg; path = AWAREFramework/Assets/images/5_frustrated/5_1.jpg; sourceTree = "<group>"; };
 		CB75E4E66C388D70CE70F8219433D2E6 /* AWAREAccelerometerOM+CoreDataClass.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "AWAREAccelerometerOM+CoreDataClass.h"; path = "AWAREFramework/Classes/Sensors/Accelerometer/ObjectModels/AWAREAccelerometerOM+CoreDataClass.h"; sourceTree = "<group>"; };
@@ -1401,10 +1419,17 @@
 		6B9A0208BEE3C39CA09454DBC4EFFD60 /* HealthKit */ = {
 			isa = PBXGroup;
 			children = (
+<<<<<<< HEAD
 				CA781DE92D73A33600CC0992 /* EntityHealthKitECG+CoreDataClass.h */,
 				CA781DEA2D73A33600CC0992 /* EntityHealthKitECG+CoreDataClass.m */,
 				CA781DEB2D73A33600CC0992 /* EntityHealthKitECG+CoreDataProperties.h */,
 				CA781DEC2D73A33600CC0992 /* EntityHealthKitECG+CoreDataProperties.m */,
+=======
+				CA781DF52D765B5800CC0992 /* EntityHealthKitClinical+CoreDataClass.h */,
+				CA781DF62D765B5800CC0992 /* EntityHealthKitClinical+CoreDataClass.m */,
+				CA781DF72D765B5800CC0992 /* EntityHealthKitClinical+CoreDataProperties.h */,
+				CA781DF82D765B5800CC0992 /* EntityHealthKitClinical+CoreDataProperties.m */,
+>>>>>>> add-clinical-data
 				CA781DDD2D6ECF6A00CC0992 /* EntityHealthKitCharacteristic+CoreDataClass.h */,
 				CA781DDE2D6ECF6A00CC0992 /* EntityHealthKitCharacteristic+CoreDataClass.m */,
 				CA781DDF2D6ECF6A00CC0992 /* EntityHealthKitCharacteristic+CoreDataProperties.h */,
@@ -1439,8 +1464,13 @@
 				C39A160D21C419D60D9F0F32017E04E3 /* EntityHealthKitWorkout+CoreDataProperties.m */,
 				CA781DE52D6ED09400CC0992 /* AWAREHealthKitCharacteristic.h */,
 				CA781DE72D6ED0B900CC0992 /* AWAREHealthKitCharacteristic.m */,
+<<<<<<< HEAD
 				CA781DF12D73A3B600CC0992 /* AWAREHealthKitECG.h */,
 				CA781DF32D73A45100CC0992 /* AWAREHealthKitECG.m */,
+=======
+				CA781DFD2D765BE600CC0992 /* AWAREHealthKitClinical.h */,
+				CA781DFF2D765C1100CC0992 /* AWAREHealthKitClinical.m */,
+>>>>>>> add-clinical-data
 			);
 			name = HealthKit;
 			sourceTree = "<group>";
@@ -2314,6 +2344,9 @@
 				AF7EF19364F17C30903746A0A543B823 /* Timezone.h in Headers */,
 				B8F624B572F65DB1EC6985BF60C7F625 /* TPCircularBuffer.h in Headers */,
 				CA781DE62D6ED09400CC0992 /* AWAREHealthKitCharacteristic.h in Headers */,
+				CA781DFE2D765BE600CC0992 /* AWAREHealthKitClinical.h in Headers */,
+				CA781DF92D765B5800CC0992 /* EntityHealthKitClinical+CoreDataProperties.h in Headers */,
+				CA781DFA2D765B5800CC0992 /* EntityHealthKitClinical+CoreDataClass.h in Headers */,
 				CA781DE32D6ECF6A00CC0992 /* EntityHealthKitCharacteristic+CoreDataClass.h in Headers */,
 				CA781DEF2D73A33600CC0992 /* EntityHealthKitECG+CoreDataClass.h in Headers */,
 				CA781DF02D73A33600CC0992 /* EntityHealthKitECG+CoreDataProperties.h in Headers */,
@@ -2649,6 +2682,7 @@
 				CA781DE82D6ED0B900CC0992 /* AWAREHealthKitCharacteristic.m in Sources */,
 				4C6E09433D65051254F3CD59AEA92F23 /* DBTableCreator.m in Sources */,
 				5B06B1199B5B266CF52ACDD4A2DFBBFB /* DeviceUsage.m in Sources */,
+				CA781E002D765C1100CC0992 /* AWAREHealthKitClinical.m in Sources */,
 				12A3C7E671CFA55E6A93D5FC54695E9E /* EntityAccelerometer.m in Sources */,
 				3BA27BFCE6BAF8217B2A983954A7B1AC /* EntityAccelerometer+CoreDataProperties.m in Sources */,
 				D4036ADF081C6BF7439D0ED4A2689B5D /* EntityAmbientNoise+CoreDataClass.m in Sources */,
@@ -2737,6 +2771,8 @@
 				31D9B0E1A20419B54019884328CAD948 /* EntityPushNotification.m in Sources */,
 				031927E0253C22C35DB0F461788584C8 /* EntityPushNotification+CoreDataProperties.m in Sources */,
 				54D007D1A507470EED54FFBFA600AFFB /* EntityRotation.m in Sources */,
+				CA781DFB2D765B5800CC0992 /* EntityHealthKitClinical+CoreDataProperties.m in Sources */,
+				CA781DFC2D765B5800CC0992 /* EntityHealthKitClinical+CoreDataClass.m in Sources */,
 				907AD88FE1032CB3E14CA82D98988CA1 /* EntityRotation+CoreDataProperties.m in Sources */,
 				672BFB02DE2901CB655B13A8F41F93F2 /* EntityScreen.m in Sources */,
 				730E46215B266150430583802A9E162C /* EntityScreen+CoreDataProperties.m in Sources */,

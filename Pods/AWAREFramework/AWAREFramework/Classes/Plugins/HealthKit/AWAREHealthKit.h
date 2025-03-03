@@ -11,7 +11,11 @@
 #import "AWAREHealthKitCategory.h"
 #import "AWAREHealthKitQuantity.h"
 #import "AWAREHealthKitCharacteristic.h"
+<<<<<<< HEAD
 #import "AWAREHealthKitECG.h"
+=======
+#import "AWAREHealthKitClinical.h"
+>>>>>>> add-clinical-data
 
 
 extern NSString * _Nonnull const AWARE_PREFERENCES_STATUS_HEALTHKIT;
@@ -31,8 +35,12 @@ NS_ASSUME_NONNULL_BEGIN
 @property (readonly) AWAREHealthKitQuantity * awareHKHeartRate;
 @property (readonly) AWAREHealthKitCategory * awareHKSleep;
 @property (readonly) AWAREHealthKitCharacteristic * awareHKCharacteristic;
+<<<<<<< HEAD
 @property (readonly) AWAREHealthKitECG * awareHKECG;
 
+=======
+@property (readonly) AWAREHealthKitClinical *awareHKClinical;
+>>>>>>> add-clinical-data
 
 - (void) requestAuthorizationToAccessHealthKit;
 - (void) requestAuthorizationWithDataTypes:(NSSet *) dataTypes completion:(void (^)(BOOL success, NSError * _Nullable error))completion;

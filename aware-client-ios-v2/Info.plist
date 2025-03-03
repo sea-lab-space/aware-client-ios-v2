@@ -76,6 +76,8 @@
 	<string>For finding a QR Code, this application needs to access your camera.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>For collecting your contant information, this application needs to access your contants information.</string>
+	<key>NSHealthClinicalHealthRecordsShareUsageDescription</key>
+	<string>For collecting your health record information, this application will request access to your health records</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>For collecting your health information, this application needs to access HealthKit API.</string>
 	<key>NSHealthUpdateUsageDescription</key>
