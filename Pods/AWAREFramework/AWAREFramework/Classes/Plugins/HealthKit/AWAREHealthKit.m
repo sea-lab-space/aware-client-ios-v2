@@ -18,6 +18,7 @@
 #import "AWAREHealthKitCategory.h"
 #import "AWAREHealthKitQuantity.h"
 #import "AWAREHealthKitCharacteristic.h"
+#import "AWAREHealthKitClinical.h"
 
 #import "Screen.h"
 
@@ -50,6 +51,8 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
                                                                     dbType:dbType
                                                                 sensorName:[NSString stringWithFormat:@"%@_sleep", SENSOR_HEALTH_KIT]
                                                                 entityName:@"EntityHealthKitCategorySleep"];
+        _awareHKClinical = [[AWAREHealthKitClinical alloc] initWithAwareStudy:study dbType:AwareDBTypeSQLite];
+
         _fetchIntervalSecond = 60 * 30;
         _preperiodDays = 0;
         isAuthorized = NO;
@@ -106,6 +109,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     [_awareHKHeartRate createTable];
     [_awareHKSleep     createTable];
     [_awareHKCharacteristic createTable];
+    [_awareHKClinical createTable];
 }
 
 - (void)setParameters:(NSArray *)parameters{
@@ -172,10 +176,13 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     if(_awareHKSleep.storage != nil) {
         [_awareHKSleep.storage saveBufferDataInMainThread:YES];
     }
-    if (_awareHKCharacteristic.storage != nil) { // ✅ 现在也需要处理 characteristic 存储
+    if (_awareHKCharacteristic.storage != nil) {
         [_awareHKCharacteristic.storage saveBufferDataInMainThread:YES];
     }
-      
+    if (_awareHKClinical.storage != nil) {
+        [_awareHKClinical.storage saveBufferDataInMainThread:YES];
+    }
+    
     [self setSensingState:NO];
     return YES;
 }
@@ -188,6 +195,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     [_awareHKHeartRate startSyncDB];
     [_awareHKSleep     startSyncDB];
     [_awareHKCharacteristic startSyncDB];
+    [_awareHKClinical startSyncDB];
     [super startSyncDB];
 }
 
@@ -199,6 +207,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     [_awareHKHeartRate stopSyncDB];
     [_awareHKSleep     stopSyncDB];
     [_awareHKCharacteristic stopSyncDB];
+    [_awareHKClinical stopSyncDB];
     [super stopSyncDB];
 }
 
@@ -348,6 +357,22 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
                         [self setLastRecordTime:lastSample.endDate withHKDataType:query.objectType.identifier];
                     }
                 }
+                
+                NSSet *dataClinicalTypes = [self clinicalDataTypesToRead];
+                if ([dataClinicalTypes containsObject:query.objectType]) {
+                    if (self.isDebug) NSLog(@"[ clinical debug ] Processing clinical data for type: %@", query.objectType.identifier);
+                    if (results.count > 0) {
+                        if (self.isDebug) NSLog(@"[ clinical debug ] Found %lu records for type: %@", (unsigned long)results.count, query.objectType.identifier);
+                        [self->_awareHKClinical saveClinicalData:results];
+                        if (@available(iOS 12.0, *)) {
+                            HKClinicalRecord *lastSample = (HKClinicalRecord *)results.lastObject;
+                            [self setLastRecordTime:lastSample.endDate withHKDataType:query.objectType.identifier];
+                        } else {
+                            // Fallback on earlier versions
+                        }
+                    }
+                }
+
 
                 //////////////////////// Correlation //////////////////////////////
                 // NSSet * dataCorrelationTypes = [self getDataCorrelationTypes];
@@ -378,11 +403,32 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
 
 // Returns the types of data that Fit wishes to read from HealthKit.
 - (NSSet *)allDataTypesToRead {
-    NSSet * characteristicTypesSet = [self characteristicDataTypesToRead];
-    NSSet * otherTypesSet          = [self dataTypesToRead];
+    NSSet *characteristicTypesSet = [self characteristicDataTypesToRead];
+    NSSet *clinicalTypesSet = [self clinicalDataTypesToRead];
+    NSSet *otherTypesSet = [self dataTypesToRead];
     
-    return [otherTypesSet setByAddingObjectsFromSet: characteristicTypesSet];
+    NSMutableSet *allDataTypes = [NSMutableSet setWithSet:otherTypesSet];
+    [allDataTypes unionSet:characteristicTypesSet];
+    [allDataTypes unionSet:clinicalTypesSet];
+    return allDataTypes;
 }
+
+- (NSSet *)clinicalDataTypesToRead {
+    NSMutableSet* dataTypesSet = [[NSMutableSet alloc] init];
+
+    if (@available(iOS 12.0, *)) {
+        [dataTypesSet addObject:[HKClinicalType clinicalTypeForIdentifier:HKClinicalTypeIdentifierAllergyRecord]];
+        [dataTypesSet addObject:[HKClinicalType clinicalTypeForIdentifier:HKClinicalTypeIdentifierConditionRecord]];
+        [dataTypesSet addObject:[HKClinicalType clinicalTypeForIdentifier:HKClinicalTypeIdentifierImmunizationRecord]];
+        [dataTypesSet addObject:[HKClinicalType clinicalTypeForIdentifier:HKClinicalTypeIdentifierLabResultRecord]];
+        [dataTypesSet addObject:[HKClinicalType clinicalTypeForIdentifier:HKClinicalTypeIdentifierMedicationRecord]];
+        [dataTypesSet addObject:[HKClinicalType clinicalTypeForIdentifier:HKClinicalTypeIdentifierProcedureRecord]];
+        [dataTypesSet addObject:[HKClinicalType clinicalTypeForIdentifier:HKClinicalTypeIdentifierVitalSignRecord]];
+    }
+
+    return dataTypesSet;
+}
+
 
 // Returns the types of data that Fit wishes to read from HealthKit.
 - (NSSet *)characteristicDataTypesToRead {
@@ -751,6 +797,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     NSSet * dataCatogoryTypes    = [self getDataCategoryTypes];
     // NSSet * dataCorrelationTypes = [self getDataCorrelationTypes];
     NSSet * dataWorkoutTypes     = [self getDataWorkoutTypes];
+    NSSet *dataClinicalTypes    = [self clinicalDataTypesToRead];
 
     for (HKQuantityType *quantityType in dataQuantityTypes) {
         [dataTypesSet addObject:quantityType];
@@ -766,6 +813,15 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     for(HKWorkoutType *workoutType in dataWorkoutTypes){
         [dataTypesSet addObject:workoutType];
     }
+    
+    if (@available(iOS 12.0, *)) {
+        for (HKClinicalType *clinicalType in dataClinicalTypes) {
+            [dataTypesSet addObject:clinicalType];
+        }
+    } else {
+        // Fallback on earlier versions
+    }
+
     
     return dataTypesSet;
 }
