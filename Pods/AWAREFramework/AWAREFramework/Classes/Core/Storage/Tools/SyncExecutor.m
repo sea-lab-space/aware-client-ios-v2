@@ -83,6 +83,7 @@
     [request setURL:[NSURL URLWithString:url]];
     [request setHTTPMethod:@"POST"];
     [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+    [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
     [request setHTTPBody:mutablePostData];
     
     // NSLog(@"%@", [[NSString alloc] initWithData:mutablePostData encoding:NSUTF8StringEncoding]);
@@ -92,36 +93,36 @@
     session.configuration.timeoutIntervalForResource    = _timeoutIntervalForResource;
     session.configuration.allowsCellularAccess = YES;
     
-    if(debug){
-        // parse JSON data
-        NSError *jsonError;
-        NSArray *jsonArray = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&jsonError];
+    
+    // parse JSON data
+    NSError *jsonError;
+    NSArray *jsonArray = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:&jsonError];
+    
+    NSString *firstTimestamp = @"N/A";
+    NSString *lastTimestamp = @"N/A";
+    NSUInteger dataListLength = 0;  // length of data
+    
+    if (!jsonError && [jsonArray isKindOfClass:[NSArray class]]) {
+        dataListLength = jsonArray.count; // get data count
         
-        NSString *firstTimestamp = @"N/A";
-        NSString *lastTimestamp = @"N/A";
-        NSUInteger dataListLength = 0;  // length of data
-        
-        if (!jsonError && [jsonArray isKindOfClass:[NSArray class]]) {
-            dataListLength = jsonArray.count; // get data count
+        if (dataListLength > 0) {
+            NSDictionary *firstObject = jsonArray.firstObject;
+            NSDictionary *lastObject = jsonArray.lastObject;
             
-            if (dataListLength > 0) {
-                NSDictionary *firstObject = jsonArray.firstObject;
-                NSDictionary *lastObject = jsonArray.lastObject;
-                
-                if (firstObject[@"timestamp"]) {
-                    firstTimestamp = [NSString stringWithFormat:@"%@", firstObject[@"timestamp"]];
-                }
-                if (lastObject[@"timestamp"]) {
-                    lastTimestamp = [NSString stringWithFormat:@"%@", lastObject[@"timestamp"]];
-                }
+            if (firstObject[@"timestamp"]) {
+                firstTimestamp = [NSString stringWithFormat:@"%@", firstObject[@"timestamp"]];
             }
-        } else {
-            NSLog(@"JSON parsing error: %@", jsonError.localizedDescription);
+            if (lastObject[@"timestamp"]) {
+                lastTimestamp = [NSString stringWithFormat:@"%@", lastObject[@"timestamp"]];
+            }
         }
-        
-        NSLog(@"[HTTP Request] Sensor: %@ | Data Length (bytes): %tu | Data List Length: %lu | First Timestamp: %@ | Last Timestamp: %@",
-              sensorName, [mutablePostData length], (unsigned long)dataListLength, firstTimestamp, lastTimestamp);
+    } else {
+        NSLog(@"JSON parsing error: %@", jsonError.localizedDescription);
     }
+    
+    NSLog(@"[HTTP Request] Sensor: %@ | Data Length (bytes): %tu | Data List Length: %lu | First Timestamp: %@ | Last Timestamp: %@",
+          sensorName, [mutablePostData length], (unsigned long)dataListLength, firstTimestamp, lastTimestamp);
+    
     
     dataTask = [session dataTaskWithRequest:request];
     [dataTask resume];
