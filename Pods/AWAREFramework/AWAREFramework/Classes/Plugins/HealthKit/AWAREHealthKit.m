@@ -19,6 +19,7 @@
 #import "AWAREHealthKitQuantity.h"
 #import "AWAREHealthKitCharacteristic.h"
 #import "AWAREHealthKitClinical.h"
+#import "AWAREHealthKitECG.h"
 
 #import "Screen.h"
 
@@ -43,6 +44,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
         _awareHKCategory  = [[AWAREHealthKitCategory alloc] initWithAwareStudy:study dbType:AwareDBTypeSQLite];
         _awareHKQuantity  = [[AWAREHealthKitQuantity alloc] initWithAwareStudy:study dbType:AwareDBTypeSQLite];
         _awareHKCharacteristic = [[AWAREHealthKitCharacteristic alloc] initWithAwareStudy:study dbType:dbType characteristicTypes:[self characteristicDataTypesToRead]];
+        _awareHKECG = [[AWAREHealthKitECG alloc] initWithAwareStudy:study dbType:dbType];
         _awareHKHeartRate = [[AWAREHealthKitQuantity alloc] initWithAwareStudy:study
                                                                         dbType:dbType
                                                                     sensorName:[NSString stringWithFormat:@"%@_heartrate", SENSOR_HEALTH_KIT]
@@ -52,7 +54,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
                                                                 sensorName:[NSString stringWithFormat:@"%@_sleep", SENSOR_HEALTH_KIT]
                                                                 entityName:@"EntityHealthKitCategorySleep"];
         _awareHKClinical = [[AWAREHealthKitClinical alloc] initWithAwareStudy:study dbType:AwareDBTypeSQLite];
-
+        
         _fetchIntervalSecond = 60 * 30;
         _preperiodDays = 0;
         isAuthorized = NO;
@@ -84,7 +86,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
             NSLog(@"%@", @"mark4");
             [self->_awareHKCharacteristic fetchAndSaveCharacteristicData];
             completion(success, error);
-                                           }];
+        }];
     }
 }
 
@@ -110,11 +112,12 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     [_awareHKSleep     createTable];
     [_awareHKCharacteristic createTable];
     [_awareHKClinical createTable];
+    [_awareHKECG createTable];
 }
 
 - (void)setParameters:(NSArray *)parameters{
     _fetchIntervalSecond = [self getSensorSetting:parameters
-                               withKey:[NSString stringWithFormat:@"frequency_%@", SENSOR_HEALTH_KIT]];
+                                          withKey:[NSString stringWithFormat:@"frequency_%@", SENSOR_HEALTH_KIT]];
     
     double preDays = [self getSensorSetting:parameters withKey:AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS];
     if (preDays > 0) {
@@ -179,6 +182,9 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     if (_awareHKCharacteristic.storage != nil) {
         [_awareHKCharacteristic.storage saveBufferDataInMainThread:YES];
     }
+    if (_awareHKECG.storage != nil) {
+        [_awareHKECG.storage saveBufferDataInMainThread:YES];
+    }
     if (_awareHKClinical.storage != nil) {
         [_awareHKClinical.storage saveBufferDataInMainThread:YES];
     }
@@ -195,6 +201,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     [_awareHKHeartRate startSyncDB];
     [_awareHKSleep     startSyncDB];
     [_awareHKCharacteristic startSyncDB];
+    [_awareHKECG startSyncDB];
     [_awareHKClinical startSyncDB];
     [super startSyncDB];
 }
@@ -207,6 +214,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     [_awareHKHeartRate stopSyncDB];
     [_awareHKSleep     stopSyncDB];
     [_awareHKCharacteristic stopSyncDB];
+    [_awareHKECG stopSyncDB];
     [_awareHKClinical stopSyncDB];
     [super stopSyncDB];
 }
@@ -243,7 +251,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
         if(set.identifier == nil){
             continue;
         }
-    
+        
         // Set your start and end date for your query of interest
         NSDate * startDate = [self getLastRecordTimeWithHKDataType:set.identifier];
         NSDate * endDate   = [NSDate new];
@@ -268,25 +276,25 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
             [self->healthStore executeQuery:query];
         }
         
-//        double gapDays = (endDate.timeIntervalSince1970 - startDate.timeIntervalSince1970) / (60*60*24);
-//        if (gapDays > 0) {
-//            for(int i=0; i<gapDays-1; i++){
-//                NSDate * adjustedEndDate   = [startDate  dateByAddingTimeInterval:60*60*24*(i+1)];
-//                NSDate * adjustedStartDate = [startDate  dateByAddingTimeInterval:60*60*24*i];
-//                // NSLog(@"[%d] %@ (%@ - %@)",i, set.identifier, adjustedStartDate, adjustedEndDate);
-//
-//                HKQuery * query = [self getQueryWithSampleType:set start:adjustedStartDate end:adjustedEndDate];
-//                if(self->healthStore != nil){
-//                    [self->healthStore executeQuery:query];
-//                }
-//            }
-//        } else{
-//            HKQuery * query = [self getQueryWithSampleType:set start:startDate end:endDate];
-//            // NSLog(@"%@ (%@ - %@)", set.identifier, startDate, endDate);
-//            if(self->healthStore != nil){
-//                [self->healthStore executeQuery:query];
-//            }
-//        }
+        //        double gapDays = (endDate.timeIntervalSince1970 - startDate.timeIntervalSince1970) / (60*60*24);
+        //        if (gapDays > 0) {
+        //            for(int i=0; i<gapDays-1; i++){
+        //                NSDate * adjustedEndDate   = [startDate  dateByAddingTimeInterval:60*60*24*(i+1)];
+        //                NSDate * adjustedStartDate = [startDate  dateByAddingTimeInterval:60*60*24*i];
+        //                // NSLog(@"[%d] %@ (%@ - %@)",i, set.identifier, adjustedStartDate, adjustedEndDate);
+        //
+        //                HKQuery * query = [self getQueryWithSampleType:set start:adjustedStartDate end:adjustedEndDate];
+        //                if(self->healthStore != nil){
+        //                    [self->healthStore executeQuery:query];
+        //                }
+        //            }
+        //        } else{
+        //            HKQuery * query = [self getQueryWithSampleType:set start:startDate end:endDate];
+        //            // NSLog(@"%@ (%@ - %@)", set.identifier, startDate, endDate);
+        //            if(self->healthStore != nil){
+        //                [self->healthStore executeQuery:query];
+        //            }
+        //        }
     }
 }
 
@@ -297,7 +305,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     NSPredicate *predicate = [HKQuery predicateForSamplesWithStartDate:start
                                                                endDate:end
                                                                options:HKQueryOptionStrictStartDate];
-
+    
     // Create a sort descriptor for sorting by start date
     NSSortDescriptor *sortDescriptor = [NSSortDescriptor sortDescriptorWithKey:HKSampleSortIdentifierStartDate ascending:YES];
     
@@ -323,12 +331,12 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
                         }else{
                             [self->_awareHKQuantity saveQuantityData:results];
                         }
-                    
+                        
                         HKQuantitySample * lastSample = (HKQuantitySample *)results.lastObject;
                         [self setLastRecordTime:lastSample.endDate withHKDataType:query.objectType.identifier];
                     }
                 }
-
+                
                 /// Catogory
                 NSSet * dataCatogoryTypes = [self getDataCategoryTypes];
                 if([dataCatogoryTypes containsObject:query.objectType]){
@@ -344,7 +352,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
                         [self setLastRecordTime:lastSample.endDate withHKDataType:query.objectType.identifier];
                     }
                 }
-
+                
                 /// Workout
                 NSSet * dataWorkoutTypes = [self getDataWorkoutTypes];
                 if([dataWorkoutTypes containsObject:query.objectType]){
@@ -355,6 +363,20 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
                         
                         HKWorkout * lastSample = (HKWorkout *)results.lastObject;
                         [self setLastRecordTime:lastSample.endDate withHKDataType:query.objectType.identifier];
+                    }
+                }
+                
+                NSSet *ecgTypes = [self getDataECGTypes];
+                if ([ecgTypes containsObject:query.objectType]) {
+                    if (results.count > 0) {
+                        if (@available(iOS 14.0, *)) {
+                            [self->_awareHKECG saveECGData:(NSArray<HKElectrocardiogram *> *)results];
+                        }
+                        
+                        if (@available(iOS 14.0, *)) {
+                            HKElectrocardiogram * lastSample = (HKElectrocardiogram *)results.lastObject;
+                            [self setLastRecordTime:lastSample.endDate withHKDataType:query.objectType.identifier];
+                        }
                     }
                 }
                 
@@ -372,8 +394,8 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
                         }
                     }
                 }
-
-
+                
+                
                 //////////////////////// Correlation //////////////////////////////
                 // NSSet * dataCorrelationTypes = [self getDataCorrelationTypes];
                 // if([dataCorrelationTypes containsObject:query.sampleType]){
@@ -393,7 +415,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
             NSString * message = [NSString stringWithFormat:@"[%@] %@", [self getSensorName], exception.debugDescription];
             NSLog(@"%@", message);
         } @finally {
-
+            
         }
     }];
     
@@ -405,27 +427,37 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
 - (NSSet *)allDataTypesToRead {
     NSSet *characteristicTypesSet = [self characteristicDataTypesToRead];
     NSSet *clinicalTypesSet = [self clinicalDataTypesToRead];
+    NSSet *ecgTypesSet            = [self getDataECGTypes];
     NSSet *otherTypesSet = [self dataTypesToRead];
     
     NSMutableSet *allDataTypes = [NSMutableSet setWithSet:otherTypesSet];
     [allDataTypes unionSet:characteristicTypesSet];
+    [allDataTypes unionSet:ecgTypesSet];
     [allDataTypes unionSet:clinicalTypesSet];
     return allDataTypes;
 }
 
 - (NSSet *)clinicalDataTypesToRead {
     NSMutableSet* dataTypesSet = [[NSMutableSet alloc] init];
-
+    
     if (@available(iOS 12.0, *)) {
         [dataTypesSet addObject:[HKClinicalType clinicalTypeForIdentifier:HKClinicalTypeIdentifierAllergyRecord]];
         [dataTypesSet addObject:[HKClinicalType clinicalTypeForIdentifier:HKClinicalTypeIdentifierConditionRecord]];
-        [dataTypesSet addObject:[HKClinicalType clinicalTypeForIdentifier:HKClinicalTypeIdentifierImmunizationRecord]];
+//        [dataTypesSet addObject:[HKClinicalType clinicalTypeForIdentifier:HKClinicalTypeIdentifierImmunizationRecord]];
         [dataTypesSet addObject:[HKClinicalType clinicalTypeForIdentifier:HKClinicalTypeIdentifierLabResultRecord]];
         [dataTypesSet addObject:[HKClinicalType clinicalTypeForIdentifier:HKClinicalTypeIdentifierMedicationRecord]];
         [dataTypesSet addObject:[HKClinicalType clinicalTypeForIdentifier:HKClinicalTypeIdentifierProcedureRecord]];
         [dataTypesSet addObject:[HKClinicalType clinicalTypeForIdentifier:HKClinicalTypeIdentifierVitalSignRecord]];
+//        if (@available(iOS 14.0, *)) {
+//            [dataTypesSet addObject:[HKClinicalType clinicalTypeForIdentifier:HKClinicalTypeIdentifierCoverageRecord]];
+//        }
+        if (@available(iOS 16.4, *)) {
+            [dataTypesSet addObject:[HKClinicalType clinicalTypeForIdentifier:HKClinicalTypeIdentifierClinicalNoteRecord]];
+        }
+        
+        
     }
-
+    
     return dataTypesSet;
 }
 
@@ -471,8 +503,8 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     if (@available(iOS 16.0, *)) {
         [dataTypesSet addObject:[HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierAppleSleepingWristTemperature]]; // Temperature,                 Discrete
     }
-
-
+    
+    
     // Fitness
     for (HKQuantityTypeIdentifier identifier in @[
         HKQuantityTypeIdentifierStepCount,                           // Scalar(Count),               Cumulative
@@ -527,7 +559,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
             HKQuantityTypeIdentifierRunningGroundContactTime,// 16.0         // Time,                        Discrete
             HKQuantityTypeIdentifierRunningPower,// 16.0                     // Power                        Discrete
             HKQuantityTypeIdentifierRunningSpeed,// 16.0                     // m/s,                         Discrete
-
+            
         ]){
             [dataTypesSet addObject:[HKQuantityType quantityTypeForIdentifier:identifier]];
         }
@@ -553,7 +585,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
         [dataTypesSet addObject:[HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierHeartRateRecoveryOneMinute]]; // 16.0       // Scalar(Count)/Time,          Discrete
     }
     
-
+    
     // Results
     for (HKQuantityTypeIdentifier identifier in @[
         HKQuantityTypeIdentifierOxygenSaturation, // 8.0                  // Scalar(Percent, 0.0 - 1.0),  Discrete
@@ -579,10 +611,10 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     if (@available(iOS 15.0, *)) {
         [dataTypesSet addObject:[HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierNumberOfAlcoholicBeverages]];
     }
-
     
-
-
+    
+    
+    
     // Nutrition
     for (HKQuantityTypeIdentifier identifier in @[
         HKQuantityTypeIdentifierDietaryFatTotal,// 8.0                   // Mass,   Cumulative
@@ -596,7 +628,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
         HKQuantityTypeIdentifierDietarySugar,// 8.0                      // Mass,   Cumulative
         HKQuantityTypeIdentifierDietaryEnergyConsumed,// 8.0             // Energy, Cumulative
         HKQuantityTypeIdentifierDietaryProtein,// 8.0                    // Mass,   Cumulative
-
+        
         HKQuantityTypeIdentifierDietaryVitaminA,// 8.0                   // Mass, Cumulative
         HKQuantityTypeIdentifierDietaryVitaminB6,// 8.0                  // Mass, Cumulative
         HKQuantityTypeIdentifierDietaryVitaminB12,// 8.0                 // Mass, Cumulative
@@ -639,71 +671,71 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
 }
 
 - (NSSet *) getDataCategoryTypes{
-     NSMutableSet* dataTypesSet = [[NSMutableSet alloc] init];
+    NSMutableSet* dataTypesSet = [[NSMutableSet alloc] init];
     
     for (HKCategoryTypeIdentifier identifier in @[
-                                                  HKCategoryTypeIdentifierSleepAnalysis,
-                                                  HKCategoryTypeIdentifierAppleStandHour,
-                                                  HKCategoryTypeIdentifierCervicalMucusQuality,
-                                                  HKCategoryTypeIdentifierOvulationTestResult,
-                                                  HKCategoryTypeIdentifierMenstrualFlow,
-                                                  HKCategoryTypeIdentifierIntermenstrualBleeding,
-                                                  HKCategoryTypeIdentifierSexualActivity
-                                                ]) {
+        HKCategoryTypeIdentifierSleepAnalysis,
+        HKCategoryTypeIdentifierAppleStandHour,
+        HKCategoryTypeIdentifierCervicalMucusQuality,
+        HKCategoryTypeIdentifierOvulationTestResult,
+        HKCategoryTypeIdentifierMenstrualFlow,
+        HKCategoryTypeIdentifierIntermenstrualBleeding,
+        HKCategoryTypeIdentifierSexualActivity
+    ]) {
         [dataTypesSet addObject:[HKCategoryType categoryTypeForIdentifier:identifier]];
     }
-
+    
     if (@available(iOS 10.0, *)) {
         [dataTypesSet addObject:[HKCategoryType categoryTypeForIdentifier:HKCategoryTypeIdentifierMindfulSession]];
     }
-
+    
     if (@available(iOS 12.2, *)) {
         [dataTypesSet addObject:[HKCategoryType categoryTypeForIdentifier: HKCategoryTypeIdentifierHighHeartRateEvent]];
         [dataTypesSet addObject:[HKCategoryType categoryTypeForIdentifier: HKCategoryTypeIdentifierLowHeartRateEvent]];
         [dataTypesSet addObject:[HKCategoryType categoryTypeForIdentifier: HKCategoryTypeIdentifierIrregularHeartRhythmEvent]];
     }
-
+    
     if (@available(iOS 13, *)) {
         [dataTypesSet addObject:[HKCategoryType categoryTypeForIdentifier:HKCategoryTypeIdentifierAudioExposureEvent]];
         [dataTypesSet addObject:[HKCategoryType categoryTypeForIdentifier:HKCategoryTypeIdentifierToothbrushingEvent]];
     }
-
+    
     
     if (@available(iOS 13.6, *)) {
         for (HKCategoryTypeIdentifier identifier in @[
-                                                        HKCategoryTypeIdentifierAbdominalCramps,
-                                                        HKCategoryTypeIdentifierAcne,
-                                                        HKCategoryTypeIdentifierAppetiteChanges,
-                                                        HKCategoryTypeIdentifierBloating,
-                                                        HKCategoryTypeIdentifierBreastPain,
-                                                        HKCategoryTypeIdentifierChestTightnessOrPain,
-                                                        HKCategoryTypeIdentifierChills,
-                                                        HKCategoryTypeIdentifierConstipation,
-                                                        HKCategoryTypeIdentifierCoughing,
-                                                        HKCategoryTypeIdentifierDiarrhea,
-                                                        HKCategoryTypeIdentifierDizziness,
-                                                        HKCategoryTypeIdentifierFainting,
-                                                        HKCategoryTypeIdentifierFatigue,
-                                                        HKCategoryTypeIdentifierFever,
-                                                        HKCategoryTypeIdentifierGeneralizedBodyAche,
-                                                        HKCategoryTypeIdentifierHeadache,
-                                                        HKCategoryTypeIdentifierHeartburn,
-                                                        HKCategoryTypeIdentifierHotFlashes,
-                                                        HKCategoryTypeIdentifierLossOfSmell,
-                                                        HKCategoryTypeIdentifierLossOfTaste,
-                                                        HKCategoryTypeIdentifierLowerBackPain,
-                                                        HKCategoryTypeIdentifierMoodChanges,
-                                                        HKCategoryTypeIdentifierNausea,
-                                                        HKCategoryTypeIdentifierPelvicPain,
-                                                        HKCategoryTypeIdentifierRapidPoundingOrFlutteringHeartbeat,
-                                                        HKCategoryTypeIdentifierRunnyNose,
-                                                        HKCategoryTypeIdentifierShortnessOfBreath,
-                                                        HKCategoryTypeIdentifierSinusCongestion,
-                                                        HKCategoryTypeIdentifierSkippedHeartbeat,
-                                                        HKCategoryTypeIdentifierSleepChanges,
-                                                        HKCategoryTypeIdentifierSoreThroat,
-                                                        HKCategoryTypeIdentifierVomiting,
-                                                        HKCategoryTypeIdentifierWheezing]){
+            HKCategoryTypeIdentifierAbdominalCramps,
+            HKCategoryTypeIdentifierAcne,
+            HKCategoryTypeIdentifierAppetiteChanges,
+            HKCategoryTypeIdentifierBloating,
+            HKCategoryTypeIdentifierBreastPain,
+            HKCategoryTypeIdentifierChestTightnessOrPain,
+            HKCategoryTypeIdentifierChills,
+            HKCategoryTypeIdentifierConstipation,
+            HKCategoryTypeIdentifierCoughing,
+            HKCategoryTypeIdentifierDiarrhea,
+            HKCategoryTypeIdentifierDizziness,
+            HKCategoryTypeIdentifierFainting,
+            HKCategoryTypeIdentifierFatigue,
+            HKCategoryTypeIdentifierFever,
+            HKCategoryTypeIdentifierGeneralizedBodyAche,
+            HKCategoryTypeIdentifierHeadache,
+            HKCategoryTypeIdentifierHeartburn,
+            HKCategoryTypeIdentifierHotFlashes,
+            HKCategoryTypeIdentifierLossOfSmell,
+            HKCategoryTypeIdentifierLossOfTaste,
+            HKCategoryTypeIdentifierLowerBackPain,
+            HKCategoryTypeIdentifierMoodChanges,
+            HKCategoryTypeIdentifierNausea,
+            HKCategoryTypeIdentifierPelvicPain,
+            HKCategoryTypeIdentifierRapidPoundingOrFlutteringHeartbeat,
+            HKCategoryTypeIdentifierRunnyNose,
+            HKCategoryTypeIdentifierShortnessOfBreath,
+            HKCategoryTypeIdentifierSinusCongestion,
+            HKCategoryTypeIdentifierSkippedHeartbeat,
+            HKCategoryTypeIdentifierSleepChanges,
+            HKCategoryTypeIdentifierSoreThroat,
+            HKCategoryTypeIdentifierVomiting,
+            HKCategoryTypeIdentifierWheezing]){
             [dataTypesSet addObject:[HKCategoryType categoryTypeForIdentifier:identifier]];
         }
     }
@@ -728,11 +760,11 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     
     if (@available(iOS 14.3, *)) {
         for (HKCategoryTypeIdentifier identifier in @[
-                                  HKCategoryTypeIdentifierPregnancy,
-                                  HKCategoryTypeIdentifierLactation,               // HKCategoryValue
-                                  HKCategoryTypeIdentifierContraceptive,                    // HKCategoryValueContraceptive
-                                  HKCategoryTypeIdentifierLowCardioFitnessEvent
-                                                    ]){
+            HKCategoryTypeIdentifierPregnancy,
+            HKCategoryTypeIdentifierLactation,               // HKCategoryValue
+            HKCategoryTypeIdentifierContraceptive,                    // HKCategoryValueContraceptive
+            HKCategoryTypeIdentifierLowCardioFitnessEvent
+        ]){
             [dataTypesSet addObject:[HKCategoryType categoryTypeForIdentifier:identifier]];
         }
     }
@@ -747,7 +779,7 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
             [dataTypesSet addObject:[HKCategoryType categoryTypeForIdentifier:identifier]];
         }
     }
-
+    
     if (@available(iOS 16.0, *)) {
         for (HKCategoryTypeIdentifier identifier in @[
             HKCategoryTypeIdentifierPersistentIntermenstrualBleeding,
@@ -784,7 +816,17 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     // HKWorkoutType
     HKWorkoutType *workoutType = [HKWorkoutType workoutType];
     [dataTypesSet addObject:workoutType];
+    
+    return dataTypesSet;
+}
 
+- (NSSet *) getDataECGTypes {
+    NSMutableSet* dataTypesSet = [[NSMutableSet alloc] init];
+    
+    if (@available(iOS 14.0, *)) {
+        [dataTypesSet addObject:[HKObjectType electrocardiogramType]]; // ECG type
+    }
+    
     return dataTypesSet;
 }
 
@@ -798,7 +840,8 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     // NSSet * dataCorrelationTypes = [self getDataCorrelationTypes];
     NSSet * dataWorkoutTypes     = [self getDataWorkoutTypes];
     NSSet *dataClinicalTypes    = [self clinicalDataTypesToRead];
-
+    NSSet * dataEcgTypes = [self getDataECGTypes];
+    
     for (HKQuantityType *quantityType in dataQuantityTypes) {
         [dataTypesSet addObject:quantityType];
     }
@@ -821,7 +864,15 @@ NSString * const AWARE_PREFERENCES_PLUGIN_HEALTHKIT_PREPERIOD_DAYS = @"preperiod
     } else {
         // Fallback on earlier versions
     }
-
+    
+    if (@available(iOS 14.0, *)) {
+        for (HKElectrocardiogramType *ecgType in dataEcgTypes){
+            [dataTypesSet addObject:ecgType];
+        }
+    } else {
+        // Fallback on earlier versions
+    }
+    
     
     return dataTypesSet;
 }
